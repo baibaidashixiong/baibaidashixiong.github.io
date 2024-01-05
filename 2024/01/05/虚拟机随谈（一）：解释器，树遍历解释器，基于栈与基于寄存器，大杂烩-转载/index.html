@@ -79,13 +79,24 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="daidaidashixiong">
-<meta property="og:url" content="http://example.com/index.html">
+<meta name="description" content="转载自R神地址 ：https:&#x2F;&#x2F;www.iteye.com&#x2F;blog&#x2F;rednaxelafx-492667 写在正文之前 最近学习jvm的相关知识，在知乎上遇见了一位非常好的作者，特来分享一下，就是RednaxelaFX. 知乎地址：https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;rednaxelafx  大前天收到一条PM： 引用 你好，很冒昧的向你发短消息，我现在在看JS引擎，能过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟机随谈（一）：解释器，树遍历解释器，基于栈与基于寄存器，大杂烩(转载)">
+<meta property="og:url" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/index.html">
 <meta property="og:site_name" content="daidaidashixiong">
+<meta property="og:description" content="转载自R神地址 ：https:&#x2F;&#x2F;www.iteye.com&#x2F;blog&#x2F;rednaxelafx-492667 写在正文之前 最近学习jvm的相关知识，在知乎上遇见了一位非常好的作者，特来分享一下，就是RednaxelaFX. 知乎地址：https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;rednaxelafx  大前天收到一条PM： 引用 你好，很冒昧的向你发短消息，我现在在看JS引擎，能过">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/parse_process.png">
+<meta property="og:image" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/difference_between_inter_and_compile.png">
+<meta property="og:image" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/Tree_traversal_interpreter.gif">
+<meta property="og:image" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/i=a+b*c_java_bc.gif">
+<meta property="og:image" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/jvm_foo.gif">
+<meta property="og:image" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/Dalvik_VM_foo.gif">
+<meta property="article:published_time" content="2024-01-05T03:09:04.000Z">
+<meta property="article:modified_time" content="2024-01-05T05:33:10.603Z">
 <meta property="article:author" content="baibaidashixiong">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/parse_process.png">
 
 
 
@@ -115,13 +126,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/"/>
+  <link rel="canonical" href="http://example.com/2024/01/05/虚拟机随谈（一）：解释器，树遍历解释器，基于栈与基于寄存器，大杂烩-转载/"/>
 
 
 
 
 
-  <title>daidaidashixiong</title>
+  <title>虚拟机随谈（一）：解释器，树遍历解释器，基于栈与基于寄存器，大杂烩(转载) | daidaidashixiong</title>
   
 
 
@@ -140,8 +151,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -224,9 +234,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -256,9 +266,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2024/01/05/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%9A%8F%E8%B0%88%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%EF%BC%8C%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%9D%82%E7%83%A9-%E8%BD%AC%E8%BD%BD/" itemprop="url">虚拟机随谈（一）：解释器，树遍历解释器，基于栈与基于寄存器，大杂烩(转载)</a></h1>
+          <h1 class="post-title" itemprop="name headline">虚拟机随谈（一）：解释器，树遍历解释器，基于栈与基于寄存器，大杂烩(转载)</h1>
         
 
         <div class="post-meta">
@@ -308,9 +316,7 @@
       
 
       
-        
-          
-            <h3 id="转载自R神"><a href="#转载自R神" class="headerlink" title="转载自R神"></a>转载自R神</h3><p>地址 ：<a target="_blank" rel="noopener" href="https://www.iteye.com/blog/rednaxelafx-492667">https://www.iteye.com/blog/rednaxelafx-492667</a></p>
+        <h3 id="转载自R神"><a href="#转载自R神" class="headerlink" title="转载自R神"></a>转载自R神</h3><p>地址 ：<a target="_blank" rel="noopener" href="https://www.iteye.com/blog/rednaxelafx-492667">https://www.iteye.com/blog/rednaxelafx-492667</a></p>
 <p>写在正文之前 最近学习jvm的相关知识，在知乎上遇见了一位非常好的作者，特来分享一下，就是RednaxelaFX.</p>
 <p>知乎地址：<a target="_blank" rel="noopener" href="https://www.zhihu.com/people/rednaxelafx">https://www.zhihu.com/people/rednaxelafx</a></p>
 <hr>
@@ -487,8 +493,6 @@
 <p>关于推荐资料，在<a target="_blank" rel="noopener" href="http://rednaxelafx.iteye.com/link?tag=virtual+machine">“我的收藏”的virtual machine标签</a>里就有不少值得一读的资料。如果只是对JavaScript引擎相关感兴趣的话也可以选着读些。我的收藏里还有v8和tamarin等标签的，资料有的是 ^ ^</p>
 <p>能有耐心读到结尾的同学们，欢迎提出意见和建议，以及指出文中的错漏 _<br>不像抓到虫就给美分的大师，我没那种信心……错漏难免，我也需要进一步学习。拜托大家了～</p>
 
-          
-        
       
     </div>
     
@@ -505,168 +509,28 @@
       
 
       
-
-      
-
       
       
-        <div class="post-eof"></div>
+
       
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/12/27/ART%E5%8E%9F%E7%90%86%E8%A7%A3%E9%87%8A/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="daidaidashixiong">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2023/12/27/ART%E5%8E%9F%E7%90%86%E8%A7%A3%E9%87%8A/" itemprop="url">ART调试基础</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
             
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-12-27T14:49:28+08:00">
-                2023-12-27
-              </time>
+              <a href="/2023/12/27/ART%E5%8E%9F%E7%90%86%E8%A7%A3%E9%87%8A/" rel="next" title="ART调试基础">
+                <i class="fa fa-chevron-left"></i> ART调试基础
+              </a>
             
+          </div>
 
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
             
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <ul>
-<li><p>sshfs挂载文件:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo sshfs -o allow_other,IdentityFile=~/.ssh/id_rsa name@ip_addr:/root/develop/ /root/develop/</span><br></pre></td></tr></table></figure></li>
-<li><p>硬盘先同步再挂载:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo rsync -aXS /home/ /data</span><br><span class="line">blkid</span><br><span class="line">UUID=XXXX-XXXX-XXXX（磁盘UUID） /home ext4 nodev,nosuid 0 2</span><br></pre></td></tr></table></figure></li>
-<li><p>随机指令序列生成器:RISU(random instruction sequence generator for userspace testing),用于用户态测试架构模型,如qemu(<a target="_blank" rel="noopener" href="https://git.linaro.org/people/peter.maydell/risu.git">https://git.linaro.org/people/peter.maydell/risu.git</a>).</p>
-</li>
-<li><p>add-symbol-file&#x2F;symbol-file&#x2F;file的异同:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">add-symbol-file:该命令用于在调试会话中加载额外的符号文件，通常是为了调试动态加载的共享库。</span><br><span class="line">`add-symbol-file /path/to/symbols/mylibrary.so 0x12345678` 0x12345678为info files的入口点(.text段)的偏移地址(textaddress)</span><br><span class="line"></span><br><span class="line">symbol-file:Read symbol table information from file filename.</span><br><span class="line">file filename: Use filename as the program to be debugged.</span><br></pre></td></tr></table></figure></li>
-<li><p>调试riscv linux:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编译</span></span><br><span class="line">make ARCH=riscv defconfig</span><br><span class="line">make ARCH=riscv menuconfig在kernel hacking中选上debug info</span><br><span class="line">make ARCH=riscv CROSS_COMPILE=riscv64-linux-gnu- -j</span><br><span class="line"><span class="comment"># 启动</span></span><br><span class="line">qemu -s -S -kernel bzImage(用于引导系统的压缩内核)</span><br><span class="line">gdb vmlinux(包含调试信息,与bzImage是同一套代码)</span><br></pre></td></tr></table></figure></li>
-<li><p>编译内核：选取aosp-7-24版本</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://android.googlesource.com/kernel/goldfish -b android-goldfish-3.18  --depth=1</span><br><span class="line"><span class="built_in">export</span> PATH=/home/zqz/android/aosp-7-24/aosp/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/bin:<span class="variable">$PATH</span></span><br><span class="line">make ARCH=arm CROSS_COMPILE=arm-eabi- ranchu_defconfig</span><br><span class="line">make -j</span><br></pre></td></tr></table></figure></li>
-<li><p>调试内核：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 端口1</span></span><br><span class="line">./objs/emulator  -kernel ~/android/aosp-7-24/image/zImage -no-snapshot -verbose -avd Nexus_S_API_24 -qemu -machine virt -s -S</span><br><span class="line"><span class="comment"># 端口2</span></span><br><span class="line">~/android/aosp-7-24/aosp/prebuilts/gdb/linux-x86/bin/gdb</span><br><span class="line"><span class="comment"># gdbinit</span></span><br><span class="line">target remote :1234</span><br><span class="line">file ~/android/aosp-7-24/image/vmlinux</span><br><span class="line"><span class="built_in">dir</span> ~/android/kernel/goldfish</span><br><span class="line">b start_kernel</span><br><span class="line">add-symbol-file </span><br></pre></td></tr></table></figure></li>
-<li><p>启动模拟器错误：<code># Resetting for Cold Boot Emulator Engine failed</code>.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">emulator -no-snapshot</span><br></pre></td></tr></table></figure>
-<p><code>Cold boot: Required by the User</code>:</p>
-</li>
-<li><p>文件系统只读问题:<code>./objs/emulator -verbose  -writable-system  -avd Nexus_S_API_24 -qemu -machine virt</code>.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 文件系统只读问题</span></span><br><span class="line">./objs/emulator -verbose  -writable-system  -avd Nexus_S_API_24 -qemu -machine virt</span><br><span class="line">adb root</span><br><span class="line">adb remount</span><br><span class="line">adb push ~/android/library/libart.so /system/lib/libart.so</span><br></pre></td></tr></table></figure></li>
-<li><p>调试android系统中的程序：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># android中</span></span><br><span class="line">gdbserver 10.0.2.2:2345 /system/bin/pm</span><br><span class="line"></span><br><span class="line"><span class="comment"># host中（调试native）</span></span><br><span class="line">adb forward tcp:2345 tcp:2345</span><br><span class="line">~/android/aosp-7-24/aosp/prebuiltsgdb/linux-x86/bin/gdb</span><br><span class="line">file ~/android/aosp-7-24/aosp/out/target/product/generic/symbols/system/bin/toybox</span><br><span class="line"><span class="built_in">dir</span> ~/android/aosp-7-24/aosp/external/toybox</span><br><span class="line">b main</span><br></pre></td></tr></table></figure></li>
-<li><p>调试art：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">./objs/emulator -verbose  -writable-system -avd Nexus_S_API_24 -qemu -machine virt</span><br><span class="line">adb root</span><br><span class="line">adb remount</span><br><span class="line">adb push ~/android/library/libart.so /system/lib/libart.so</span><br><span class="line"></span><br><span class="line">adb root</span><br><span class="line">adb forward tcp:2345 tcp:2345</span><br><span class="line">adb shell gdbserver 10.0.2.2:2345 am start -n com.android.calendar/com.android.calendar.LaunchActivity</span><br><span class="line"></span><br><span class="line"><span class="comment"># gdb</span></span><br><span class="line"><span class="comment"># 由于libart是在guest中的库，所以直接file不能调试</span></span><br><span class="line">target remote :2345</span><br><span class="line"><span class="built_in">dir</span> ~/android/aosp-7-24/aosp/</span><br><span class="line">b art_quick_invoke_stub</span><br><span class="line">b java_vm_ext.cc:939 <span class="comment"># VM entry </span></span><br><span class="line">c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 针对&lt;optimized out&gt;</span></span><br><span class="line">x/d &amp;your_variable</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>libart中的printf输出到哪里？</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell pm list packages会调用runtime.cc，并调用Runtime::Create</span><br></pre></td></tr></table></figure></li>
-</ul>
-<h4 id="安卓使用手册"><a href="#安卓使用手册" class="headerlink" title="安卓使用手册"></a>安卓使用手册</h4><ul>
-<li>CTS&amp;VTS安卓测试套件工具</li>
-<li>启动应用<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有安装包</span></span><br><span class="line">pm list packages</span><br><span class="line"><span class="comment"># 启动📅应用</span></span><br><span class="line">am start -n com.android.calendar/com.android.calendar.LaunchActivity</span><br></pre></td></tr></table></figure></li>
-<li>开启JIT日志：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">adb root</span><br><span class="line">adb shell stop</span><br><span class="line">adb shell setprop dalvik.vm.extra-opts -verbose:jit</span><br><span class="line">adb shell start</span><br></pre></td></tr></table></figure></li>
-<li>停用JIT：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">adb root</span><br><span class="line">adb shell stop</span><br><span class="line">adb shell setprop dalvik.vm.usejit <span class="literal">false</span></span><br><span class="line">adb shell start</span><br></pre></td></tr></table></figure></li>
-<li>强制编译：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell cmd package compile</span><br></pre></td></tr></table></figure></li>
-<li>设置系统启动JIT编译：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">adb shell</span><br><span class="line">su</span><br><span class="line">setprop debug.generate-debug-info <span class="literal">true</span> </span><br><span class="line">setprop dalvik.vm.dex2oat-flags --compiler-filter=quicken</span><br></pre></td></tr></table></figure></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -676,142 +540,11 @@
   </article>
 
 
-    
-      
 
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/12/27/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="daidaidashixiong">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2023/12/27/hello-world/" itemprop="url">Hello World</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2023-12-27T14:32:43+08:00">
-                2023-12-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-          
-        
+    <div class="post-spread">
       
     </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
   </div>
-  
-  
-  
-  </article>
-
-
-    
-  </section>
-
-  
 
 
           </div>
@@ -819,6 +552,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -839,8 +576,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -882,6 +628,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E8%BD%BD%E8%87%AAR%E7%A5%9E"><span class="nav-number">1.</span> <span class="nav-text">转载自R神</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81%E8%A7%A3%E6%9E%90%E5%99%A8%E4%B8%8E%E8%A7%A3%E9%87%8A%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">1、解析器与解释器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%E3%80%81%E2%80%9C%E8%A7%A3%E9%87%8A%E5%99%A8%E2%80%9D%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E2%80%9C%E8%A7%A3%E9%87%8A%E5%9E%8B%E8%AF%AD%E8%A8%80%E2%80%9D%E5%91%A2%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">2、“解释器”到底是什么？“解释型语言”呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%E3%80%81%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E6%8C%87%E4%BB%A4%E9%9B%86%E6%9E%B6%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">3、基于栈与基于寄存器的指令集架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%E3%80%81%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%E6%9E%B6%E6%9E%84%E7%9A%84VM%EF%BC%8C%E7%94%A8%E5%93%AA%E4%B8%AA%E5%A5%BD%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">4、基于栈与基于寄存器架构的VM，用哪个好？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5%E3%80%81%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%E5%9B%BE%E8%A7%A3"><span class="nav-number">6.</span> <span class="nav-text">5、树遍历解释器图解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6%E3%80%81%E4%BB%8E%E6%A0%91%E9%81%8D%E5%8E%86%E8%A7%A3%E9%87%8A%E5%99%A8%E8%BF%9B%E5%8C%96%E4%B8%BA%E5%9F%BA%E4%BA%8E%E6%A0%88%E7%9A%84%E5%AD%97%E8%8A%82%E7%A0%81%E8%A7%A3%E9%87%8A%E5%99%A8%E7%9A%84%E5%89%8D%E7%AB%AF"><span class="nav-number">7.</span> <span class="nav-text">6、从树遍历解释器进化为基于栈的字节码解释器的前端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7%E3%80%81%E5%9F%BA%E4%BA%8E%E6%A0%88%E4%B8%8E%E5%9F%BA%E4%BA%8E%E5%AF%84%E5%AD%98%E5%99%A8%E6%9E%B6%E6%9E%84%E7%9A%84VM%E7%9A%84%E4%B8%80%E7%BB%84%E5%9B%BE%E8%A7%A3"><span class="nav-number">8.</span> <span class="nav-text">7、基于栈与基于寄存器架构的VM的一组图解</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -1015,6 +777,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
